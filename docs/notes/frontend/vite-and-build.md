@@ -1,14 +1,11 @@
 ---
 title: Vite 与构建优化
 description: 开发体验、分包与静态资源相关笔记
-theme: 工程化
+theme: 前端
 tags:
   - Vite
   - 构建优化
-  - 工程化
 ---
-
-# Vite 与构建优化
 
 ## 为什么常用 Vite
 

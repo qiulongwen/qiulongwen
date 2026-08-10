@@ -3,19 +3,19 @@ import { withBase } from 'vitepress'
 
 const directions = [
   {
-    title: '前端框架',
-    desc: 'React / Vue3 + TypeScript，组件化与状态管理实践。',
-    tint: 'peach'
+    title: '前端',
+    desc: 'React / TypeScript、组件工程与构建工具实践。',
+    tint: 'frontend'
   },
   {
-    title: '工程化',
-    desc: 'Vite / Webpack、构建优化、可维护架构与发布流程。',
-    tint: 'mint'
+    title: 'AI · 后端 · 云原生',
+    desc: '模型应用、服务端与云上工程，按主题持续补充。',
+    tint: 'ai'
   },
   {
-    title: '知识沉淀',
-    desc: '主题归档、标签检索，把经验压成可回查的方法。',
-    tint: 'sky'
+    title: '图形学 · 杂七杂八',
+    desc: '渲染可视化，以及尚未归档到主线的零散记录。',
+    tint: 'graphics'
   }
 ] as const
 
@@ -56,9 +56,6 @@ const links = [
         <p class="kb-eyebrow">About</p>
         <h1 class="about-hero__name">QIULONGWEN</h1>
         <p class="about-hero__role">前端工程师 · 技术知识库</p>
-        <p class="about-hero__intro">
-          把经验压成方法。这里不做流水账，只沉淀能再次用上的前端工程记录。
-        </p>
         <div class="about-hero__actions">
           <a class="btn btn--primary" :href="withBase('/notes/')">进入知识库</a>
           <a

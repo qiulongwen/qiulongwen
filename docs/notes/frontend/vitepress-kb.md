@@ -1,14 +1,12 @@
 ---
 title: VitePress 知识库实践
 description: 用 VitePress 搭建可检索、可按主题归档的技术知识库
-theme: 工程化
+theme: 前端
 tags:
   - VitePress
   - 知识库
   - Markdown
 ---
-
-# VitePress 知识库实践
 
 技术知识库更适合「主题 + 标签」而不是时间线博客。
 

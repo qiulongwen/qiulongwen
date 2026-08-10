@@ -2,36 +2,51 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { withBase } from 'vitepress'
 import { data as notes } from '../notes.data'
+import {
+  THEME_ORDER,
+  getThemeClass,
+  getThemeTint,
+  mergeThemeTags,
+  sortByThemeOrder,
+  themeMeta
+} from '../themes'
 
 const activeTheme = ref<string>('全部')
 const activeTag = ref<string>('全部')
 
-const themeTint: Record<string, string> = {
-  前端: 'peach',
-  工程化: 'mint'
-}
-
-const themes = computed(() => {
-  const set = new Set(notes.map((note) => note.theme))
-  return ['全部', ...[...set].sort((a, b) => a.localeCompare(b, 'zh-CN'))]
-})
+const themes = computed(() => ['全部', ...THEME_ORDER])
 
 const themeStats = computed(() => {
-  const map = new Map<string, number>()
+  const countMap = new Map<string, number>()
+  const tagMap = new Map<string, Set<string>>()
+
   for (const note of notes) {
-    map.set(note.theme, (map.get(note.theme) ?? 0) + 1)
+    countMap.set(note.theme, (countMap.get(note.theme) ?? 0) + 1)
+    if (!tagMap.has(note.theme)) {
+      tagMap.set(note.theme, new Set())
+    }
+    const set = tagMap.get(note.theme)
+    if (!set) continue
+    for (const tag of note.tags) {
+      set.add(tag)
+    }
   }
-  return [...map.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, 'zh-CN'))
-    .map(([name, count]) => ({
-      name,
-      count,
-      tint: themeTint[name] ?? 'sky'
-    }))
+
+  return THEME_ORDER.map((name) => ({
+    name,
+    count: countMap.get(name) ?? 0,
+    tint: getThemeTint(name),
+    tags: mergeThemeTags(name, tagMap.get(name) ?? []).slice(0, 4),
+    description: themeMeta[name].description
+  }))
 })
 
 const tagsByTheme = computed(() => {
   const themeTagMap = new Map<string, Set<string>>()
+
+  for (const name of THEME_ORDER) {
+    themeTagMap.set(name, new Set(themeMeta[name].tags))
+  }
 
   for (const note of notes) {
     if (!themeTagMap.has(note.theme)) {
@@ -45,10 +60,10 @@ const tagsByTheme = computed(() => {
   }
 
   return [...themeTagMap.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, 'zh-CN'))
+    .sort(([a], [b]) => sortByThemeOrder(a, b))
     .map(([theme, tagSet]) => ({
       theme,
-      tags: [...tagSet].sort((a, b) => a.localeCompare(b, 'zh-CN'))
+      tags: [...tagSet]
     }))
 })
 
@@ -74,7 +89,7 @@ const filteredNotes = computed(() =>
 )
 
 function selectTheme(theme: string): void {
-  activeTheme.value = theme
+  activeTheme.value = activeTheme.value === theme ? '全部' : theme
 }
 
 function selectTag(tag: string): void {
@@ -82,7 +97,7 @@ function selectTag(tag: string): void {
 }
 
 function themeClass(theme: string): string {
-  return `is-${themeTint[theme] ?? 'sky'}`
+  return getThemeClass(theme)
 }
 
 watch(activeTheme, () => {
@@ -121,9 +136,6 @@ onMounted(() => {
         <div class="notes-hero__copy">
           <p class="kb-eyebrow">Knowledge Base</p>
           <h1>知识库</h1>
-          <p>
-            把经验压成方法。先选主题，再按标签缩小范围。
-          </p>
         </div>
         <div class="notes-hero__stats">
           <div class="notes-stat">
@@ -143,15 +155,6 @@ onMounted(() => {
 
       <div class="notes-theme-cards">
         <button
-          type="button"
-          class="notes-theme-card"
-          :class="{ 'is-active': activeTheme === '全部' }"
-          @click="selectTheme('全部')"
-        >
-          <span class="notes-theme-card__name">全部</span>
-          <span class="notes-theme-card__count">{{ notes.length }} 篇</span>
-        </button>
-        <button
           v-for="theme in themeStats"
           :key="theme.name"
           type="button"
@@ -162,8 +165,14 @@ onMounted(() => {
           ]"
           @click="selectTheme(theme.name)"
         >
-          <span class="notes-theme-card__name">{{ theme.name }}</span>
-          <span class="notes-theme-card__count">{{ theme.count }} 篇</span>
+          <div class="notes-theme-card__top">
+            <span class="notes-theme-card__name">{{ theme.name }}</span>
+            <span class="notes-theme-card__count">{{ theme.count }} 篇</span>
+          </div>
+          <p class="notes-theme-card__desc">{{ theme.description }}</p>
+          <div class="notes-theme-card__tags">
+            <span v-for="tag in theme.tags" :key="tag">{{ tag }}</span>
+          </div>
         </button>
       </div>
     </section>
