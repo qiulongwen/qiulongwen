@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="qiulongwen">
+  <rect width="64" height="64" rx="16" fill="#5645d4"/>
+  <path
+    d="M32 14c-8.284 0-15 6.716-15 15 0 6.627 4.294 12.24 10.25 14.25L24.2 50.2a2 2 0 0 0 1.6 3.2h12.4a2 2 0 0 0 1.6-3.2l-3.05-7.0C42.706 41.24 47 35.627 47 29c0-8.284-6.716-15-15-15Zm0 6c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9Z"
+    fill="#ffffff"
+  />
+  <circle cx="46.5" cy="17.5" r="3.5" fill="#f5d75e"/>
+</svg>
