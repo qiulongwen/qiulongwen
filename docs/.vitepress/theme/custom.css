@@ -43,6 +43,9 @@
   --notion-radius-lg: 12px;
   --notion-shadow-card: rgba(15, 15, 15, 0.06) 0px 4px 12px 0px;
 
+  --vp-nav-height: 60px;
+  --vp-nav-bg-color: rgba(250, 249, 247, 0.82);
+
   --vp-font-family-base: Inter, -apple-system, system-ui, 'Segoe UI',
     'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Helvetica, sans-serif;
   --vp-font-family-heading: Inter, -apple-system, system-ui, 'Segoe UI',
@@ -314,34 +317,147 @@
 .kb-hero__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  max-width: 420px;
+  gap: 12px;
+  max-width: 460px;
 }
 
-.kb-hero__stats div {
+.kb-stat {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'index en'
+    'value value'
+    'label label';
+  gap: 2px 8px;
   min-width: 0;
-  padding: 12px 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid var(--notion-hairline);
-  text-align: center;
+  padding: 14px 14px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  overflow: hidden;
+  isolation: isolate;
   opacity: 0;
-  animation: rise-in 0.5s ease both;
+  animation: rise-in 0.55s ease both;
   animation-delay: calc(0.22s + var(--delay, 0ms));
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
 }
 
-.kb-hero__stats strong {
-  display: block;
-  font-size: 22px;
-  font-weight: 650;
-  letter-spacing: -0.5px;
-  color: var(--notion-ink);
-  line-height: 1.2;
+.kb-stat::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 14px 0 0 14px;
 }
 
-.kb-hero__stats span {
-  font-size: 12px;
+.kb-stat::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -40% auto;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.kb-stat--notes {
+  background: linear-gradient(160deg, #fff 0%, var(--theme-ai-bg) 120%);
+  border-color: color-mix(in srgb, var(--theme-ai-accent) 16%, var(--notion-hairline));
+}
+
+.kb-stat--notes::before {
+  background: var(--theme-ai-accent);
+}
+
+.kb-stat--notes::after {
+  background: var(--theme-ai-accent);
+}
+
+.kb-stat--themes {
+  background: linear-gradient(160deg, #fff 0%, var(--theme-frontend-bg) 120%);
+  border-color: color-mix(in srgb, var(--theme-frontend-accent) 16%, var(--notion-hairline));
+}
+
+.kb-stat--themes::before {
+  background: var(--theme-frontend-accent);
+}
+
+.kb-stat--themes::after {
+  background: var(--theme-frontend-accent);
+}
+
+.kb-stat--tags {
+  background: linear-gradient(160deg, #fff 0%, var(--theme-backend-bg) 120%);
+  border-color: color-mix(in srgb, var(--theme-backend-accent) 16%, var(--notion-hairline));
+}
+
+.kb-stat--tags::before {
+  background: var(--theme-backend-accent);
+}
+
+.kb-stat--tags::after {
+  background: var(--theme-backend-accent);
+}
+
+.kb-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: rgba(15, 15, 15, 0.08) 0 10px 20px;
+}
+
+.kb-stat__index {
+  grid-area: index;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   color: var(--notion-steel);
+}
+
+.kb-stat__en {
+  grid-area: en;
+  justify-self: end;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--notion-steel);
+}
+
+.kb-stat__value {
+  grid-area: value;
+  margin: 4px 0 0;
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--notion-ink);
+}
+
+.kb-stat__label {
+  grid-area: label;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--notion-slate);
+}
+
+.kb-stat--notes .kb-stat__value {
+  color: var(--theme-ai-ink);
+}
+
+.kb-stat--themes .kb-stat__value {
+  color: var(--theme-frontend-ink);
+}
+
+.kb-stat--tags .kb-stat__value {
+  color: var(--theme-backend-ink);
 }
 
 .kb-panel {
@@ -2304,10 +2420,16 @@
 }
 
 .VPNavBarTitle .logo {
-  height: 32px;
-  width: 32px;
+  height: 30px;
+  width: 30px;
   border-radius: 8px;
   margin-right: 0;
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06);
+  transition: transform 0.2s ease;
+}
+
+.VPNavBarTitle .title:hover .logo {
+  transform: translateY(-1px);
 }
 
 .VPNavBarTitle .title {
@@ -2320,12 +2442,13 @@
 .site-brand {
   display: inline-flex;
   align-items: center;
-  margin-left: 12px;
+  gap: 8px;
+  margin-left: 10px;
   padding: 0;
   font-family: var(--vp-font-family-base);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   line-height: 1;
   text-transform: uppercase;
   color: var(--notion-ink) !important;
@@ -2335,6 +2458,112 @@
 
 .site-brand:hover {
   color: var(--notion-primary) !important;
+}
+
+/* —— Top navigation bar ——
+   Keep VitePress default left/right layout; only restyle visuals. */
+.VPNavBar {
+  background: var(--vp-nav-bg-color) !important;
+  backdrop-filter: saturate(1.2) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(12px);
+  border-bottom: 1px solid transparent !important;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.VPNavBar .divider,
+.VPNavBar .divider-line {
+  display: none !important;
+}
+
+.VPNavBar:not(.top) {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-bottom-color: var(--notion-hairline) !important;
+  box-shadow: 0 1px 0 rgba(15, 15, 15, 0.02);
+}
+
+.VPNavBar .content-body {
+  background: transparent !important;
+}
+
+.VPNavBarMenu {
+  gap: 4px;
+}
+
+.VPNavBarMenuLink {
+  margin: 0 !important;
+  padding: 0 12px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--notion-slate) !important;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease !important;
+}
+
+.VPNavBarMenuLink:hover {
+  color: var(--notion-ink) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
+.VPNavBarMenuLink.active {
+  color: var(--notion-brand-purple-800) !important;
+  background: var(--notion-card-lavender) !important;
+  font-weight: 600 !important;
+}
+
+.VPNavBarSearch .DocSearch-Button {
+  height: 34px;
+  margin: 0;
+  padding: 0 12px 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--notion-hairline);
+  background: rgba(255, 255, 255, 0.75);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.VPNavBarSearch .DocSearch-Button:hover {
+  border-color: var(--notion-hairline-strong);
+  background: #fff;
+  box-shadow: var(--notion-shadow-card);
+}
+
+.VPNavBarSearch .DocSearch-Button-Placeholder,
+.VPNavBarSearch .DocSearch-Button-Keys {
+  font-size: 12px;
+}
+
+.VPNavBarExtra .VPAppearance,
+.VPSocialLink {
+  border-radius: 8px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.VPSocialLink:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.VPNavScreen {
+  background: rgba(250, 249, 247, 0.96) !important;
+  backdrop-filter: blur(12px);
+}
+
+.VPNavScreenMenuLink {
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+}
+
+.VPNavScreenMenuLink.active {
+  color: var(--notion-brand-purple-800) !important;
+  background: var(--notion-card-lavender) !important;
 }
 
 @keyframes rise-in {
@@ -2395,7 +2624,7 @@
   .kb-home .kb-hero__brand,
   .kb-home .kb-hero__meta,
   .kb-home .kb-hero__actions,
-  .kb-home .kb-hero__stats div,
+  .kb-home .kb-stat,
   .kb-home .kb-panel,
   .kb-home .kb-panel__dist-seg,
   .kb-home .kb-panel__row,

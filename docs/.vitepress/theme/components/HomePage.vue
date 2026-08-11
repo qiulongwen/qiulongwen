@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import { data as notes } from '../notes.data'
 import {
@@ -117,6 +117,52 @@ const themeDistribution = computed(() => {
     width: `${Math.max((theme.count / total) * 100, theme.count > 0 ? 8 : 4)}%`
   }))
 })
+
+const displayNoteCount = ref(0)
+const displayThemeCount = ref(0)
+const displayTagCount = ref(0)
+
+function animateCount(
+  target: number,
+  display: { value: number },
+  duration = 900
+): void {
+  if (target <= 0) {
+    display.value = 0
+    return
+  }
+
+  const start = performance.now()
+
+  function tick(now: number): void {
+    const progress = Math.min((now - start) / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    display.value = Math.round(target * eased)
+    if (progress < 1) {
+      requestAnimationFrame(tick)
+    }
+  }
+
+  requestAnimationFrame(tick)
+}
+
+onMounted(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reduceMotion) {
+    displayNoteCount.value = noteCount.value
+    displayThemeCount.value = themeCount.value
+    displayTagCount.value = tagCount.value
+    return
+  }
+
+  animateCount(noteCount.value, displayNoteCount, 880)
+  window.setTimeout(() => {
+    animateCount(themeCount.value, displayThemeCount, 760)
+  }, 80)
+  window.setTimeout(() => {
+    animateCount(tagCount.value, displayTagCount, 820)
+  }, 140)
+})
 </script>
 
 <template>
@@ -133,18 +179,24 @@ const themeDistribution = computed(() => {
             <a class="btn btn--primary" :href="withBase('/notes/')">进入知识库</a>
             <a class="btn btn--secondary" :href="withBase('/about')">关于我</a>
           </div>
-          <div class="kb-hero__stats">
-            <div style="--delay: 0ms">
-              <strong>{{ noteCount }}</strong>
-              <span>篇笔记</span>
+          <div class="kb-hero__stats" aria-label="知识库概览">
+            <div class="kb-stat kb-stat--notes" style="--delay: 0ms">
+              <span class="kb-stat__index" aria-hidden="true">01</span>
+              <strong class="kb-stat__value">{{ displayNoteCount }}</strong>
+              <span class="kb-stat__label">篇笔记</span>
+              <span class="kb-stat__en">Notes</span>
             </div>
-            <div style="--delay: 60ms">
-              <strong>{{ themeCount }}</strong>
-              <span>个主题</span>
+            <div class="kb-stat kb-stat--themes" style="--delay: 70ms">
+              <span class="kb-stat__index" aria-hidden="true">02</span>
+              <strong class="kb-stat__value">{{ displayThemeCount }}</strong>
+              <span class="kb-stat__label">个主题</span>
+              <span class="kb-stat__en">Themes</span>
             </div>
-            <div style="--delay: 120ms">
-              <strong>{{ tagCount }}</strong>
-              <span>个标签</span>
+            <div class="kb-stat kb-stat--tags" style="--delay: 140ms">
+              <span class="kb-stat__index" aria-hidden="true">03</span>
+              <strong class="kb-stat__value">{{ displayTagCount }}</strong>
+              <span class="kb-stat__label">个标签</span>
+              <span class="kb-stat__en">Tags</span>
             </div>
           </div>
         </div>
