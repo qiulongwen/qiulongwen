@@ -51,10 +51,6 @@ export default defineConfig({
     sidebar: {
       '/notes/': [
         {
-          text: '知识库',
-          items: [{ text: '全部笔记', link: '/notes/' }]
-        },
-        {
           text: '前端',
           collapsed: false,
           items: [

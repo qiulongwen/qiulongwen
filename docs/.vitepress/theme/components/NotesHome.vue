@@ -42,28 +42,35 @@ const themeStats = computed(() => {
 })
 
 const tagsByTheme = computed(() => {
-  const themeTagMap = new Map<string, Set<string>>()
+  const themeTagMap = new Map<string, Map<string, number>>()
 
   for (const name of THEME_ORDER) {
-    themeTagMap.set(name, new Set(themeMeta[name].tags))
+    const map = new Map<string, number>()
+    for (const tag of themeMeta[name].tags) {
+      map.set(tag, 0)
+    }
+    themeTagMap.set(name, map)
   }
 
   for (const note of notes) {
     if (!themeTagMap.has(note.theme)) {
-      themeTagMap.set(note.theme, new Set())
+      themeTagMap.set(note.theme, new Map())
     }
-    const tagSet = themeTagMap.get(note.theme)
-    if (!tagSet) continue
+    const tagCountMap = themeTagMap.get(note.theme)
+    if (!tagCountMap) continue
     for (const tag of note.tags) {
-      tagSet.add(tag)
+      tagCountMap.set(tag, (tagCountMap.get(tag) ?? 0) + 1)
     }
   }
 
   return [...themeTagMap.entries()]
     .sort(([a], [b]) => sortByThemeOrder(a, b))
-    .map(([theme, tagSet]) => ({
+    .map(([theme, tagCountMap]) => ({
       theme,
-      tags: [...tagSet]
+      tint: getThemeTint(theme),
+      tags: [...tagCountMap.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+        .map(([name, count]) => ({ name, count }))
     }))
 })
 
@@ -75,7 +82,9 @@ const visibleTagGroups = computed(() => {
 })
 
 const availableTags = computed(() => {
-  return new Set(visibleTagGroups.value.flatMap((group) => group.tags))
+  return new Set(
+    visibleTagGroups.value.flatMap((group) => group.tags.map((tag) => tag.name))
+  )
 })
 
 const filteredNotes = computed(() =>
@@ -86,6 +95,10 @@ const filteredNotes = computed(() =>
       activeTag.value === '全部' || note.tags.includes(activeTag.value)
     return themeOk && tagOk
   })
+)
+
+const tagTotal = computed(() =>
+  tagsByTheme.value.reduce((total, group) => total + group.tags.length, 0)
 )
 
 function selectTheme(theme: string): void {
@@ -130,32 +143,49 @@ onMounted(() => {
 
 <template>
   <div class="notes-home">
-    <section class="notes-hero">
+    <section class="notes-hero" aria-label="知识库概览">
       <div class="notes-hero__glow" aria-hidden="true" />
+
       <div class="notes-hero__content">
         <div class="notes-hero__copy">
-          <p class="kb-eyebrow">Knowledge Base</p>
+          <p class="notes-hero__eyebrow">Knowledge Base</p>
           <h1>知识库</h1>
+          <p class="notes-hero__meta">按主题浏览，按标签筛选</p>
         </div>
-        <div class="notes-hero__stats">
-          <div class="notes-stat">
+
+        <div class="notes-hero__stats" aria-label="筛选概览">
+          <div class="notes-stat notes-stat--notes">
+            <span class="notes-stat__index" aria-hidden="true">01</span>
             <strong>{{ notes.length }}</strong>
-            <span>全部笔记</span>
+            <span class="notes-stat__label">全部笔记</span>
+            <span class="notes-stat__en">Notes</span>
           </div>
-          <div class="notes-stat">
+          <div class="notes-stat notes-stat--filter">
+            <span class="notes-stat__index" aria-hidden="true">02</span>
             <strong>{{ filteredNotes.length }}</strong>
-            <span>当前结果</span>
+            <span class="notes-stat__label">当前结果</span>
+            <span class="notes-stat__en">Matched</span>
           </div>
-          <div class="notes-stat">
+          <div class="notes-stat notes-stat--themes">
+            <span class="notes-stat__index" aria-hidden="true">03</span>
             <strong>{{ themeStats.length }}</strong>
-            <span>技术主题</span>
+            <span class="notes-stat__label">技术主题</span>
+            <span class="notes-stat__en">Themes</span>
           </div>
         </div>
       </div>
 
+      <div class="notes-theme-head">
+        <p class="kb-eyebrow">Themes</p>
+        <h2>技术主题</h2>
+        <p v-if="activeTheme !== '全部'" class="notes-theme-head__hint">
+          已选「{{ activeTheme }}」· 再点一次可取消
+        </p>
+      </div>
+
       <div class="notes-theme-cards">
         <button
-          v-for="theme in themeStats"
+          v-for="(theme, index) in themeStats"
           :key="theme.name"
           type="button"
           class="notes-theme-card"
@@ -163,6 +193,7 @@ onMounted(() => {
             `notes-theme-card--${theme.tint}`,
             { 'is-active': activeTheme === theme.name }
           ]"
+          :style="{ '--delay': `${index * 45}ms` }"
           @click="selectTheme(theme.name)"
         >
           <div class="notes-theme-card__top">
@@ -177,44 +208,57 @@ onMounted(() => {
       </div>
     </section>
 
-    <section class="notes-filters">
-      <div class="filter-block">
-        <p class="filter-label">标签筛选</p>
-        <div class="filter-row">
-          <button
-            type="button"
-            class="filter-pill filter-pill--tag"
-            :class="{ 'is-active': activeTag === '全部' }"
-            @click="selectTag('全部')"
-          >
-            全部标签
-          </button>
-          <template v-for="group in visibleTagGroups" :key="group.theme">
-            <span
-              v-if="activeTheme === '全部'"
-              class="tag-filter-divider"
-            >
-              {{ group.theme }}
-            </span>
-            <button
-              v-for="tag in group.tags"
-              :key="`${group.theme}-${tag}`"
-              type="button"
-              class="filter-pill filter-pill--tag"
-              :class="{ 'is-active': activeTag === tag }"
-              @click="selectTag(tag)"
-            >
-              {{ tag }}
-            </button>
-          </template>
+    <section class="notes-filters" aria-label="标签筛选">
+      <div class="notes-section-head">
+        <p class="kb-eyebrow">Tags</p>
+        <div class="notes-section-head__row">
+          <h2>标签筛选</h2>
+          <span>{{ tagTotal }} 个标签</span>
         </div>
+      </div>
+
+      <div class="filter-row">
+        <button
+          type="button"
+          class="filter-pill"
+          :class="{ 'is-active': activeTag === '全部' }"
+          @click="selectTag('全部')"
+        >
+          <span>全部标签</span>
+        </button>
+        <template v-for="group in visibleTagGroups" :key="group.theme">
+          <span
+            v-if="activeTheme === '全部'"
+            class="tag-filter-divider"
+            :class="`tag-filter-divider--${group.tint}`"
+          >
+            {{ group.theme }}
+          </span>
+          <button
+            v-for="tag in group.tags"
+            :key="`${group.theme}-${tag.name}`"
+            type="button"
+            class="filter-pill"
+            :class="[
+              `filter-pill--${group.tint}`,
+              { 'is-active': activeTag === tag.name }
+            ]"
+            @click="selectTag(tag.name)"
+          >
+            <span>{{ tag.name }}</span>
+            <em>{{ tag.count }}</em>
+          </button>
+        </template>
       </div>
     </section>
 
-    <section class="notes-list-wrap">
-      <div class="notes-list-head">
-        <h2>笔记列表</h2>
-        <p>{{ filteredNotes.length }} 篇匹配</p>
+    <section class="notes-list-wrap" aria-label="笔记列表">
+      <div class="notes-section-head">
+        <p class="kb-eyebrow">Notes</p>
+        <div class="notes-section-head__row">
+          <h2>笔记列表</h2>
+          <span>{{ filteredNotes.length }} 篇匹配</span>
+        </div>
       </div>
 
       <div class="notes-list">
