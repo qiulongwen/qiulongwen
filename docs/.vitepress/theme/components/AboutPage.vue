@@ -77,10 +77,11 @@ const links = [
       </div>
       <div class="about-grid">
         <article
-          v-for="item in directions"
+          v-for="(item, index) in directions"
           :key="item.title"
           class="about-card"
           :class="`about-card--${item.tint}`"
+          :style="{ '--delay': `${index * 55}ms` }"
         >
           <h3>{{ item.title }}</h3>
           <p>{{ item.desc }}</p>
@@ -95,12 +96,13 @@ const links = [
       </div>
       <div class="about-links">
         <a
-          v-for="link in links"
+          v-for="(link, index) in links"
           :key="link.title"
           class="about-link"
           :href="link.external ? link.href : withBase(link.href)"
           :target="link.external ? '_blank' : undefined"
           :rel="link.external ? 'noopener noreferrer' : undefined"
+          :style="{ '--delay': `${index * 45}ms` }"
         >
           <div>
             <h3>{{ link.title }}</h3>
