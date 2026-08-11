@@ -107,6 +107,10 @@ export default defineConfig({
             {
               text: '效率工具与工作流',
               link: '/notes/misc/tools-and-workflow'
+            },
+            {
+              text: 'macOS 安装 uv',
+              link: '/notes/misc/macos-uv-install'
             }
           ]
         }
