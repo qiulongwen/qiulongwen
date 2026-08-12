@@ -18,7 +18,6 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
 const NOTES_ROOT = path.join(ROOT, 'docs', 'notes')
-const CONFIG_PATH = path.join(ROOT, 'docs', '.vitepress', 'config.mts')
 
 /** @typedef {{ name: string, dir: string, aliases: string[], defaultTags: string[] }} ThemeDef */
 
@@ -157,14 +156,6 @@ function slugify(value) {
 }
 
 /**
- * @param {string} value
- * @returns {string}
- */
-function escapeSingleQuotes(value) {
-  return value.replaceAll("'", "\\'")
-}
-
-/**
  * @param {string} title
  * @param {string} description
  * @param {string} themeName
@@ -207,65 +198,6 @@ ${tagLines}
 }
 
 /**
- * @param {string} source
- * @param {string} themeName
- * @param {string} title
- * @param {string} link
- * @returns {string}
- */
-function insertSidebarItem(source, themeName, title, link) {
-  if (source.includes(`link: '${link}'`) || source.includes(`link: "${link}"`)) {
-    console.log(`侧栏已存在链接，跳过更新: ${link}`)
-    return source
-  }
-
-  const marker = `text: '${themeName}'`
-  const markerIdx = source.indexOf(marker)
-  if (markerIdx === -1) {
-    throw new Error(`在 config.mts 中找不到主题分组: ${themeName}`)
-  }
-
-  const itemsKey = 'items: ['
-  const itemsIdx = source.indexOf(itemsKey, markerIdx)
-  if (itemsIdx === -1) {
-    throw new Error(`主题「${themeName}」缺少 items 数组`)
-  }
-
-  const openIdx = itemsIdx + itemsKey.length
-  let depth = 1
-  let closeIdx = -1
-  for (let i = openIdx; i < source.length; i += 1) {
-    const ch = source[i]
-    if (ch === '[') depth += 1
-    if (ch === ']') {
-      depth -= 1
-      if (depth === 0) {
-        closeIdx = i
-        break
-      }
-    }
-  }
-
-  if (closeIdx === -1) {
-    throw new Error(`无法解析主题「${themeName}」的 items 数组`)
-  }
-
-  const inner = source.slice(openIdx, closeIdx)
-  const trimmedInner = inner.replace(/\s+$/, '')
-  const itemBlock = `{
-              text: '${escapeSingleQuotes(title)}',
-              link: '${link}'
-            }`
-
-  const nextInner =
-    trimmedInner.trim().length === 0
-      ? `\n            ${itemBlock}\n          `
-      : `${trimmedInner},\n            ${itemBlock}\n          `
-
-  return `${source.slice(0, openIdx)}${nextInner}${source.slice(closeIdx)}`
-}
-
-/**
  * @param {string} value
  * @returns {string[]}
  */
@@ -286,6 +218,9 @@ async function main() {
 
 主题可选:
 ${THEMES.map((t) => `  - ${t.name}  (${t.aliases.join(', ')})`).join('\n')}
+
+说明:
+  侧栏会根据 frontmatter 自动生成，无需再改 config.mts。
 `)
     return
   }
@@ -341,18 +276,12 @@ ${THEMES.map((t) => `  - ${t.name}  (${t.aliases.join(', ')})`).join('\n')}
   fs.mkdirSync(dirPath, { recursive: true })
   fs.writeFileSync(filePath, buildTemplate(title, desc, theme.name, tags), 'utf8')
 
-  const configSource = fs.readFileSync(CONFIG_PATH, 'utf8')
-  const nextConfig = insertSidebarItem(configSource, theme.name, title, link)
-  if (nextConfig !== configSource) {
-    fs.writeFileSync(CONFIG_PATH, nextConfig, 'utf8')
-  }
-
   console.log(`
 ✓ 已创建笔记
   文件: ${path.relative(ROOT, filePath)}
   主题: ${theme.name}
   链接: ${link}
-  侧栏: docs/.vitepress/config.mts
+  侧栏: 自动生成（重启 / 刷新 dev 即可）
 
 下一步:
   npm run dev

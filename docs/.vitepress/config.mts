@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { generateNotesSidebar } from './notesSidebar'
 
 export default defineConfig({
   title: 'QIULONGWEN',
@@ -49,72 +50,7 @@ export default defineConfig({
     ],
 
     sidebar: {
-      '/notes/': [
-        {
-          text: '前端',
-          collapsed: false,
-          items: [
-            { text: 'React 实践笔记', link: '/notes/frontend/react-notes' },
-            { text: 'TypeScript 要点', link: '/notes/frontend/typescript-notes' },
-            {
-              text: 'Vite 与构建优化',
-              link: '/notes/frontend/vite-and-build'
-            },
-            {
-              text: 'VitePress 知识库实践',
-              link: '/notes/frontend/vitepress-kb'
-            }
-          ]
-        },
-        {
-          text: 'AI',
-          collapsed: false,
-          items: [
-            {
-              text: 'Prompt 与 Agent 入门',
-              link: '/notes/ai/prompt-and-agent'
-            }
-          ]
-        },
-        {
-          text: '后端',
-          collapsed: false,
-          items: [
-            { text: 'API 设计要点', link: '/notes/backend/api-design' }
-          ]
-        },
-        {
-          text: '云原生',
-          collapsed: false,
-          items: [
-            {
-              text: 'Kubernetes 基础笔记',
-              link: '/notes/cloud-native/k8s-basics'
-            }
-          ]
-        },
-        {
-          text: '图形学',
-          collapsed: false,
-          items: [
-            { text: 'WebGL 与渲染入门', link: '/notes/graphics/webgl-notes' }
-          ]
-        },
-        {
-          text: '杂七杂八',
-          collapsed: false,
-          items: [
-            {
-              text: '效率工具与工作流',
-              link: '/notes/misc/tools-and-workflow'
-            },
-            {
-              text: 'macOS 安装 uv',
-              link: '/notes/misc/macos-uv-install'
-            }
-          ]
-        }
-      ]
+      '/notes/': generateNotesSidebar()
     },
 
     socialLinks: [

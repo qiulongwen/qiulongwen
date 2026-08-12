@@ -30,6 +30,8 @@ npm run new-note -- --theme frontend --title "React Server Components" --tags "R
 
 主题可用中文或别名：`前端/frontend`、`AI/ai`、`后端/backend`、`云原生/cloud`、`图形学/graphics`、`杂七杂八/misc`。
 
+文章侧栏会根据笔记 frontmatter 的 `theme` / `title` **自动生成**，只需写 Markdown，不用改 `config.mts`。
+
 ### 🔭 近期关注
 
 - 前端工程化与可维护架构
